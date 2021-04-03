@@ -9,13 +9,12 @@
       "url": "https://github.com/bill-richards/Gsdc_NVM.git"
     },
     "authors":
-    [
-      {
-        "name": "Bill Richards",
-        "email": "bill@greyskin.co.uk"
-      }
-    ],
-    "license": "BSD",
+    {
+      "name": "Bill Richards",
+      "email": "bill@greyskin.co.uk",
+      "maintainer" : true
+    },
+    "license": "BSD-1-Clause",
     "examples": [
         {
             "name" : "API Example",
