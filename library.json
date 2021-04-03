@@ -1,6 +1,6 @@
 {
     "name": "Gsdc Non-Volatile Memory API",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "An API for reading from and writing to external EEPROM on the I2C Bus",
     "keywords": ["24C256", "EEPROM", "I2C", "IIC"],
     "repository":
@@ -19,7 +19,7 @@
         {
             "name" : "API Example",
             "base" : "examples/NVM",
-            "files" : [ "nvm.nio" ]
+            "files" : ["nvm.nio", "README.md"]
         }
     ]
   }
