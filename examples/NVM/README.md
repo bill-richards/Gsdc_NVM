@@ -15,24 +15,23 @@
 **m**|_Display all (local) **memory** contents_
 **f**|_**Flush** the data to the EEPROM_
 
-_1-4_|  Write some data to memory
+_1-3_|  Write some data to memory
 ---:|---
-**1** | _Store current time_
-**2** | _Store a Message_
-**3** | _Store a message in reverse_
-**4** | _Store the fibonacci sequence_
+**1** | _Store a Message_
+**2** | _Store a message in reverse_
+**3** | _Store the fibonacci sequence_
 
-_5-8_ | Read specific data from memory
+_4-6_ | Read specific data from memory
 ---:|---
-**5** | _Read stored time_
-**6** | _Read message_
-**7** | _Read reversed message_
-**8** | _Read the fibonacci sequence_
+**4** | _Read message_
+**5** | _Read reversed message_
+**6** | _Read the fibonacci sequence_
 
-_9-0_ | Erase data from memory
+_7-9_ | Erase data from memory
 ---:|---
-**9** |_Erase the time_
-**0** |_Erase the fibonacci sequence_
+**7** |_Erase the message_
+**8** |_Erase the reversed message_
+**9** |_Erase the fibonacci sequence_
 
 If you do not call flush (using option _**f**_) the data will not be persisted to the EEPROM.
 

@@ -3,10 +3,10 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-#include <map>
 
 #include "DataMarkers.h"
-#include "MemoryDatum.h"
+#include "MemoryDataStructure.h"
+
 
 class NonVolatileMemory
 {
@@ -18,29 +18,26 @@ private:
     bool _transmitting          = false;
 
     int _i2cAddress;
-    std::map<char, MemoryDatum> _dataArray;
-    std::vector<std::function<void (int)>> _addressNullifiedEventHandlers;
-    std::vector<std::function<void (int, bool)>> _eepromEraseStartedEventHandlers;
+    MemoryDataStructure _dataStructure;
+
+    void (*_addressNullifiedEventHandler)(int) = { };
+    void (*_eepromEraseStartedEventHandler)(int, bool) = { };
 
     void endI2CTransmission();
     bool exists(DataMarkers marker);
     char readFromEEPROM(int address);
     void removeAnyExistingTerminator(int statingAddress);
 
-    std::vector<MemoryDatum> orderDataByIndex();
-
     void startI2CTransmission(int address);
     void writeToEEPROM(int address, char val);
 
     void raiseAddressNullifiedEvent(int address)
     {
-        for(const auto handler : _addressNullifiedEventHandlers)
-            handler(address);
+        _addressNullifiedEventHandler(address);
     }
     void raiseEepromEraseStartedEvent(int number_of_addresses, bool ignoreNUL)
     {
-        for(const auto handler : _eepromEraseStartedEventHandlers)
-            handler(number_of_addresses, ignoreNUL);
+        _eepromEraseStartedEventHandler(number_of_addresses, ignoreNUL);
     }
 
 public:
@@ -52,7 +49,7 @@ public:
     void eraseEEPROMData(bool ignoreNUL);
     void flush();
     String read(DataMarkers marker);
-    std::vector<MemoryDatum> readAll();
+    MemoryDataStructure::MemoryDataIterator readAll();
     void readEEPROM();
     void write(String value, DataMarkers marker);
     void write(int data, DataMarkers marker);
@@ -61,14 +58,9 @@ public:
     void write(bool data, DataMarkers marker);
     void write(char data, DataMarkers marker);
 
-    void addAddressNullifiedEventHandler(std::function<void (int address)> func)
-    {
-        _addressNullifiedEventHandlers.push_back(func);
-    }
-    void addEepromEraseStartedEventHandler(std::function<void (int memory_size, bool ignore_NUL)> func)
-    {
-        _eepromEraseStartedEventHandlers.push_back(func);
-    }
+    void addAddressNullifiedEventHandler(void (*func)(int)) { _addressNullifiedEventHandler = func; }
+    void addEepromEraseStartedEventHandler(void(*func)(int, bool)) { _eepromEraseStartedEventHandler = func; }
 };
+
 #endif
 
