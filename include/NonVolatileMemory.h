@@ -1,3 +1,12 @@
+#ifndef __single_param_int_fn_t_defined
+#define __single_param_int_fn_t_defined
+typedef void (*__single_param_int_fn_t) (int);
+#endif
+#ifndef __binary_param_int_bool_fn_t_defined
+#define __binary_param_int_bool_fn_t_defined
+typedef void (*__binary_param_int_bool_fn_t) (int, bool);
+#endif
+
 #ifndef NonVolatileMemory_h_
 #define NonVolatileMemory_h_
 
@@ -20,8 +29,8 @@ private:
     int _i2cAddress;
     MemoryDataStructure _dataStructure;
 
-    void (*_addressNullifiedEventHandler)(int) = { };
-    void (*_eepromEraseStartedEventHandler)(int, bool) = { };
+    __single_param_int_fn_t _addressNullifiedEventHandler = 0;
+    __binary_param_int_bool_fn_t _eepromEraseStartedEventHandler = 0;
 
     void endI2CTransmission();
     bool exists(DataMarkers marker);
@@ -58,8 +67,8 @@ public:
     void write(bool data, DataMarkers marker);
     void write(char data, DataMarkers marker);
 
-    void addAddressNullifiedEventHandler(void (*func)(int)) { _addressNullifiedEventHandler = func; }
-    void addEepromEraseStartedEventHandler(void(*func)(int, bool)) { _eepromEraseStartedEventHandler = func; }
+    void addAddressNullifiedEventHandler(__single_param_int_fn_t func) { _addressNullifiedEventHandler = func; }
+    void addEepromEraseStartedEventHandler(__binary_param_int_bool_fn_t func) { _eepromEraseStartedEventHandler = func; }
 };
 
 #endif

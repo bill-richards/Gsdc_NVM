@@ -86,8 +86,8 @@ String _receivedMessage;
 
 bool getMessage()
 {
-  Serial.println("Enter the message you want to store or q|quit to cancel");
-  Serial.print("Your Message: ");
+  Serial.println("Enter the data you want to store or q|quit to cancel");
+  Serial.print("Your Data: ");
 
   String message = "";
   while(message != "q" && message != "quit" && message.length() == 0)
@@ -102,7 +102,7 @@ bool getMessage()
   String response = "";
   while(response != "y" && response != "yes" && response != "n" &&  response != "no" && response != "q" && response != "quit") 
   {
-    Serial.println("Is the message correct?");
+    Serial.println("Is the data correct?");
     response = captureSerialInput();
   }
   if(response == "q" || response == "quit") { Serial.println("EXIT"); return false; }
@@ -189,8 +189,8 @@ void loop()
 
     if((_serialCommand >= '1') && (_serialCommand <= '3') ){ writeToMemory(_serialCommand); }
     if((_serialCommand >= '4') && (_serialCommand <= '7') ){ readFromMemory(_serialCommand); }
-    if(_serialCommand == '7'){ Serial.println("Erasing the message"); _memory.clear(DataMarkers::ETX); }
-    if(_serialCommand == '8'){ Serial.println("Erasing the reversed message"); _memory.clear(DataMarkers::DLE); }
+    if(_serialCommand == '7'){ Serial.println("Erasing the data"); _memory.clear(DataMarkers::ETX); }
+    if(_serialCommand == '8'){ Serial.println("Erasing the reversed data"); _memory.clear(DataMarkers::DLE); }
     if(_serialCommand == '9'){ Serial.println("Erasing the fibonacci sequence"); _memory.clear(DataMarkers::FS); }
     if(_serialCommand == 'c'){ Serial.println("Erasing the in memory data structure"); _memory.clearAll(); }
     if(_serialCommand == 'e'){ _memory.eraseEEPROMData(true); }
