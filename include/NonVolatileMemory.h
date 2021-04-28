@@ -1,12 +1,21 @@
+#ifndef __single_param_int_fn_t_defined
+#define __single_param_int_fn_t_defined
+typedef void (*__single_param_int_fn_t) (int);
+#endif
+#ifndef __binary_param_int_bool_fn_t_defined
+#define __binary_param_int_bool_fn_t_defined
+typedef void (*__binary_param_int_bool_fn_t) (int, bool);
+#endif
+
 #ifndef NonVolatileMemory_h_
 #define NonVolatileMemory_h_
 
 #include <Arduino.h>
 #include <Wire.h>
-#include <map>
 
 #include "DataMarkers.h"
-#include "MemoryDatum.h"
+#include "MemoryDataStructure.h"
+
 
 class NonVolatileMemory
 {
@@ -18,29 +27,26 @@ private:
     bool _transmitting          = false;
 
     int _i2cAddress;
-    std::map<char, MemoryDatum> _dataArray;
-    std::vector<std::function<void (int)>> _addressNullifiedEventHandlers;
-    std::vector<std::function<void (int, bool)>> _eepromEraseStartedEventHandlers;
+    MemoryDataStructure _dataStructure;
+
+    __single_param_int_fn_t _addressNullifiedEventHandler = 0;
+    __binary_param_int_bool_fn_t _eepromEraseStartedEventHandler = 0;
 
     void endI2CTransmission();
     bool exists(DataMarkers marker);
     char readFromEEPROM(int address);
     void removeAnyExistingTerminator(int statingAddress);
 
-    std::vector<MemoryDatum> orderDataByIndex();
-
     void startI2CTransmission(int address);
     void writeToEEPROM(int address, char val);
 
     void raiseAddressNullifiedEvent(int address)
     {
-        for(const auto handler : _addressNullifiedEventHandlers)
-            handler(address);
+        _addressNullifiedEventHandler(address);
     }
     void raiseEepromEraseStartedEvent(int number_of_addresses, bool ignoreNUL)
     {
-        for(const auto handler : _eepromEraseStartedEventHandlers)
-            handler(number_of_addresses, ignoreNUL);
+        _eepromEraseStartedEventHandler(number_of_addresses, ignoreNUL);
     }
 
 public:
@@ -52,7 +58,7 @@ public:
     void eraseEEPROMData(bool ignoreNUL);
     void flush();
     String read(DataMarkers marker);
-    std::vector<MemoryDatum> readAll();
+    MemoryDataStructure::MemoryDataIterator readAll();
     void readEEPROM();
     void write(String value, DataMarkers marker);
     void write(int data, DataMarkers marker);
@@ -61,14 +67,9 @@ public:
     void write(bool data, DataMarkers marker);
     void write(char data, DataMarkers marker);
 
-    void addAddressNullifiedEventHandler(std::function<void (int address)> func)
-    {
-        _addressNullifiedEventHandlers.push_back(func);
-    }
-    void addEepromEraseStartedEventHandler(std::function<void (int memory_size, bool ignore_NUL)> func)
-    {
-        _eepromEraseStartedEventHandlers.push_back(func);
-    }
+    void addAddressNullifiedEventHandler(__single_param_int_fn_t func) { _addressNullifiedEventHandler = func; }
+    void addEepromEraseStartedEventHandler(__binary_param_int_bool_fn_t func) { _eepromEraseStartedEventHandler = func; }
 };
+
 #endif
 

@@ -20,7 +20,7 @@ void NonVolatileMemory::eraseEEPROMData(bool ignoreNUL)
         if(!ignoreNUL && value == 0) break;
     }
     writeToEEPROM(0, _terminator);
-    _dataArray.clear();
+    _dataStructure.clear();
     Serial.println();
     Serial.println("Done erasing");
 }
@@ -28,10 +28,14 @@ void NonVolatileMemory::eraseEEPROMData(bool ignoreNUL)
 void NonVolatileMemory::write(String data, DataMarkers marker)
 {
     if(exists(marker))
-        _dataArray[(char)marker].setData(data);
+    { 
+        Serial.println((String)"Updating marker:"+marker); 
+        _dataStructure.findResult()->setData(data);
+    }
     else
     {
-        _dataArray[(char)marker] = MemoryDatum(marker, data, _dataArray.size());
+        Serial.println((String)"Creating new datum for marker:"+marker); 
+        _dataStructure.add(MemoryDatum(marker, data, _dataStructure.length()));
     }
 }
 
@@ -63,30 +67,30 @@ void NonVolatileMemory::write(char data, DataMarkers marker)
 
 void NonVolatileMemory::flush()
 {
-    Serial.println();
     Serial.println("Flushing the data :");
-    orderDataByIndex();
     int address = 0;
-    std::vector<MemoryDatum> dataArray = orderDataByIndex();
-    for(auto& datum : dataArray)
+
+    MemoryDataStructure::MemoryDataIterator iterator = readAll();
+
+    while(iterator.isValid())
     {
-        int length = datum.length();
-        String toWrite = datum.value();
-        String memory_packet = datum.value() + _separatorChar;
+        auto datum = iterator.current_data();
+        int length = datum->length();
+        String toWrite = datum->value();
+        String memory_packet = datum->value() + _separatorChar;
         
         for(int idx = 0; idx < length; idx++, address++)
         {
             char current_char = toWrite[idx];
-            Serial.print(current_char);
             writeToEEPROM(address, current_char);
         }
         writeToEEPROM(address, _separatorChar);
         address += 1;
+        iterator.next();
     }
 
     writeToEEPROM(address, _terminator);
     removeAnyExistingTerminator(address+1);
-    Serial.println();
     Serial.println("Done flushing");
 }
 
@@ -145,39 +149,28 @@ char NonVolatileMemory::readFromEEPROM(int address)
 
 void NonVolatileMemory::clear(DataMarkers marker) 
 { 
-    if(!exists(marker)) return; 
-    _dataArray.erase(marker);
+    if(!exists(marker)) { return; }
+    _dataStructure.remove(marker);
 }
 
-void NonVolatileMemory::clearAll() { _dataArray.clear(); }
+void NonVolatileMemory::clearAll() { _dataStructure.clear(); }
 
-bool NonVolatileMemory::exists(DataMarkers marker) { return _dataArray.find((char)marker) != _dataArray.end(); }
+bool NonVolatileMemory::exists(DataMarkers marker) { return _dataStructure.find(marker); }
 
 String NonVolatileMemory::read(DataMarkers marker)
 {
-    return exists(marker) ? _dataArray[(char)marker].raw() : "";
+    return exists(marker) 
+        ? _dataStructure.findResult()->raw() 
+        : "";
 }
 
-std::vector<MemoryDatum> NonVolatileMemory::readAll() { return orderDataByIndex(); }
-
-std::vector<MemoryDatum> NonVolatileMemory::orderDataByIndex()
-{
-    std::map<int, MemoryDatum> index_ordered;
-    for(auto& datum : _dataArray)
-        index_ordered[datum.second.index()] = datum.second;
-
-    std::vector<MemoryDatum> data_structure;
-    for(const auto& datum : index_ordered)
-        data_structure.push_back(datum.second);
-
-    return data_structure;
-}
+MemoryDataStructure::MemoryDataIterator NonVolatileMemory::readAll() { return _dataStructure.iterator(); }
 
 void NonVolatileMemory::readEEPROM()
 {
     int datum_index = 0;
     String memory_contents = "";
-    _dataArray.clear();
+    _dataStructure.clear();
 
     for(int idx = 0; idx < _memorySize; idx++)
     {
@@ -188,14 +181,15 @@ void NonVolatileMemory::readEEPROM()
         {
             int length = memory_contents.length();
             char marker = (char)memory_contents[length-1];
-            Serial.println((String)"Creating Datum for marker: " + (int)marker);
-            _dataArray[marker] = MemoryDatum(marker, memory_contents.substring(0, length-1), datum_index);
+            Serial.println((String)"Creating Datum for marker: " + (DataMarkers)marker);
+
+            MemoryDatum newData((DataMarkers)marker, memory_contents.substring(0, length-1), datum_index);
+            _dataStructure.add(newData);
+
             memory_contents.clear();
             datum_index += 1;
             continue;   
         }
         memory_contents += current_character;
     }
-
-    orderDataByIndex();
 }
